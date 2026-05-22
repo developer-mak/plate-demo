@@ -15,8 +15,10 @@ const STORAGE_KEY = "plate_demo_records";
 let detectorModel;
 let ocrModel;
 
-loadModels();
-renderRecords();
+$(document).ready(function(){
+    loadModels();
+    renderRecords();
+});
 
 async function loadModels() {
     loading.classList.remove("d-none");
