@@ -53,9 +53,12 @@ imageInput.addEventListener("change", async (e) => {
     plateText.innerText = "Processing...";
     croppedPlateImg.removeAttribute("src");
 
+    const img = await loadImage(file);
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
     await new Promise(r => setTimeout(r, 100));
 
-    const img = await loadImage(file);
     const result = await processImage(img);
 
     loading.classList.add("d-none");
@@ -88,9 +91,9 @@ function loadImage(file) {
 async function processImage(img) {
     const inputSize = 640;
 
-    canvas.width = img.width;
-    canvas.height = img.height;
-    ctx.drawImage(img, 0, 0);
+    // canvas.width = img.width;
+    // canvas.height = img.height;
+    // ctx.drawImage(img, 0, 0);
 
     const inputCanvas = document.createElement("canvas");
     inputCanvas.width = inputSize;
