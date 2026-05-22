@@ -5,6 +5,7 @@ const ctx = canvas.getContext("2d");
 const croppedPlateImg = document.getElementById("croppedPlate");
 const plateText = document.getElementById("plateText");
 const loading = document.getElementById("loading");
+const isReady = document.getElementById("isReady");
 const recordsList = document.getElementById("recordsList");
 const exportPdfBtn = document.getElementById("exportPdfBtn");
 const clearBtn = document.getElementById("clearBtn");
@@ -25,6 +26,7 @@ async function loadModels() {
     ocrModel = await ort.InferenceSession.create("./models/cct_s_v2_global.onnx");
 
     loading.classList.add("d-none");
+    isReady.classList.remove("d-none");
 }
 
 captureBtn.addEventListener("click", () => {
