@@ -298,7 +298,8 @@ function renderRecords() {
                     <div class="col-8 col-md-4">
                         <h4 class="text-success mb-1">${r.plate}</h4>
                         <small class="text-muted">${r.date}</small>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteRecord(${i})">
+                        <br>
+                        <button class="btn btn-sm btn-outline-danger mt-2" onclick="deleteRecord(${i})">
                             Delete
                         </button>
                     </div>
@@ -309,6 +310,16 @@ function renderRecords() {
             </div>
         </div>
     `).join("");
+}
+
+function deleteRecord(index) {
+    if (!confirm("Delete this record?")) return;
+
+    const records = getRecords();
+    records.splice(index, 1);
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    renderRecords();
 }
 
 exportPdfBtn.addEventListener("click", () => {
