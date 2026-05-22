@@ -302,12 +302,13 @@ function renderRecords() {
                     <div class="col-4 col-md-2">
                         <img src="${r.croppedImage}" class="img-fluid border rounded">
                     </div>
-                    <div class="col-8 col-md-4">
+                    <div class="col-6 col-md-9">
                         <h4 class="text-success mb-1">${r.plate}</h4>
                         <small class="text-muted">${r.date}</small>
-                        <br>
-                        <button class="btn btn-sm btn-outline-danger mt-2" onclick="deleteRecord(${i})">
-                            Delete
+                    </div>
+                    <div class="col-2 col-md-1">
+                        <button class="btn btn-sm btn-outline-danger btn-block" onclick="deleteRecord(${i})">
+                            <i class="bi bi-trash"></i>
                         </button>
                     </div>
                 </div>
