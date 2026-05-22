@@ -24,14 +24,8 @@ async function loadModels() {
     loading.classList.remove("d-none");
     loading.innerText = "Loading AI models...";
 
-    ort.env.wasm.numThreads = 4;
-    ort.env.wasm.simd = true;
-    detectorModel = await ort.InferenceSession.create("./models/best.onnx", {
-        executionProviders: ['wasm']
-    });
-    ocrModel = await ort.InferenceSession.create("./models/cct_s_v2_global.onnx", {
-        executionProviders: ['wasm']
-    });
+    detectorModel = await ort.InferenceSession.create("./models/best.onnx");
+    ocrModel = await ort.InferenceSession.create("./models/cct_s_v2_global.onnx");
 
     loading.classList.add("d-none");
     isReady.classList.remove("d-none");
