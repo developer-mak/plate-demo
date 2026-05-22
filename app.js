@@ -73,7 +73,7 @@ imageInput.addEventListener("change", async (e) => {
     plateText.innerText = result.plate;
 
     saveRecord({
-        capturedImage: result.capturedImage,
+        // capturedImage: result.capturedImage,
         croppedImage: result.croppedImage,
         plate: result.plate,
         date: new Date().toLocaleString()
@@ -308,13 +308,13 @@ function renderRecords() {
                             Delete
                         </button>
                     </div>
-                    <div class="col-md-6">
-                        <img src="${r.capturedImage}" class="img-fluid rounded border">
-                    </div>
                 </div>
             </div>
         </div>
     `).join("");
+    // <div class="col-md-6">
+    //     <img src="${r.capturedImage}" class="img-fluid rounded border">
+    // </div>
 }
 
 function deleteRecord(index) {
