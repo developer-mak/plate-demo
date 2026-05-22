@@ -1,213 +1,116 @@
-
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-<style>
-  body { background: #0a0e1a; min-height: 100vh; }
-  .scan-bar { position: absolute; left: 0; right: 0; height: 2px; background: #0dcaf0; opacity: 0.7; animation: scanMove 2.5s ease-in-out infinite; display: none; }
-  @keyframes scanMove { 0%{top:0} 80%{top:calc(100% - 2px)} 100%{top:0} }
-  .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: #198754; animation: pulse 2s infinite; display: inline-block; }
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-  .plate-chip { font-family: monospace; letter-spacing: 0.1em; }
-  .conf-bar { height: 4px; border-radius: 999px; }
-  .capture-zone { border: 2px dashed #495057; transition: border-color 0.2s, background 0.2s; cursor: pointer; }
-  .capture-zone:hover { border-color: #0dcaf0; background: rgba(13,202,240,0.05) !important; }
-  .scan-frame { border: 1.5px solid rgba(13,202,240,0.5); position: absolute; inset: 10px; border-radius: 4px; pointer-events: none; }
-</style>
+    <title>Plate Demo</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <style>
+        body { background: #0d1117; }
+        .scan-bar { position: absolute; left: 0; right: 0; height: 2px; background: #0dcaf0; opacity: .7; animation: scanMove 2.5s ease-in-out infinite; display: none; }
+        @keyframes scanMove { 0%{top:0} 80%{top:calc(100% - 2px)} 100%{top:0} }
+        .pulse { width: 8px; height: 8px; border-radius: 50%; background: #198754; display: inline-block; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+        .capture-zone { border: 2px dashed #495057 !important; cursor: pointer; transition: border-color .2s, background .2s; }
+        .capture-zone:hover { border-color: #0dcaf0 !important; background: rgba(13,202,240,.05) !important; }
+        .scan-frame { border: 1.5px solid rgba(13,202,240,.4); position: absolute; inset: 10px; border-radius: 4px; pointer-events: none; }
+    </style>
 </head>
 <body class="bg-dark text-white">
-<div class="container py-4" style="max-width:860px">
+<div class="container py-4">
 
-  <!-- Header -->
-  <div class="d-flex align-items-center gap-3 mb-4">
-    <div class="bg-black border border-secondary rounded-3 d-flex align-items-center justify-content-center" style="width:44px;height:44px">
-      <i class="bi bi-upc-scan text-info fs-5"></i>
-    </div>
-    <div>
-      <h5 class="mb-0 fw-semibold">PlateVision AI</h5>
-      <small class="text-secondary">License plate detection &amp; OCR</small>
-    </div>
-    <span class="badge bg-success bg-opacity-10 text-success border border-success ms-auto d-flex align-items-center gap-2 px-3 py-2">
-      <span class="pulse-dot"></span> Model ready
-    </span>
-  </div>
-
-  <!-- Capture Button -->
-  <div class="capture-zone rounded-3 bg-black text-center py-4 mb-3 w-100" onclick="simulateScan()">
-    <i class="bi bi-camera-fill text-info fs-3 d-block mb-1"></i>
-    <span class="text-secondary small">Capture or upload image</span>
-  </div>
-
-  <!-- Loading Alert -->
-  <div id="loadingAlert" class="alert alert-info d-none d-flex align-items-center gap-2 py-2 mb-3">
-    <div class="spinner-border spinner-border-sm text-info" role="status"></div>
-    Processing image through detection model…
-  </div>
-
-  <!-- Main Grid -->
-  <div class="row g-3 mb-3">
-    <!-- Canvas -->
-    <div class="col-md-8">
-      <div class="card bg-black border-secondary h-100">
-        <div class="card-header border-secondary d-flex align-items-center gap-2 text-secondary small text-uppercase" style="letter-spacing:.06em">
-          <i class="bi bi-image"></i> Captured image
+    <!-- Header -->
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <div class="bg-black border border-secondary rounded-3 d-flex align-items-center justify-content-center" style="width:44px;height:44px">
+            <i class="bi bi-upc-scan text-info fs-5"></i>
         </div>
-        <div class="card-body p-3">
-          <div class="position-relative bg-dark rounded" style="aspect-ratio:16/9">
-            <div class="scan-bar" id="scanBar"></div>
-            <div class="scan-frame"></div>
-            <div class="d-flex flex-column align-items-center justify-content-center h-100 gap-1">
-              <i class="bi bi-bounding-box text-secondary" style="font-size:2rem"></i>
-              <span class="text-secondary small">Awaiting input</span>
+        <div>
+            <h5 class="mb-0 fw-semibold">PlateVision AI</h5>
+            <small class="text-secondary">License plate detection &amp; OCR</small>
+        </div>
+        <span class="badge bg-success bg-opacity-10 text-success border border-success ms-auto d-flex align-items-center gap-2 px-3 py-2">
+            <span class="pulse"></span> Model ready
+        </span>
+    </div>
+
+    <!-- Capture Button -->
+    <div class="card bg-black border-secondary mb-3">
+        <div class="card-body text-center py-4">
+            <input type="file" id="imageInput" accept="image/*" hidden>
+            <div class="capture-zone rounded-3 bg-black py-4 mb-0" id="captureBtn">
+                <i class="bi bi-camera-fill text-info fs-3 d-block mb-1"></i>
+                <span class="text-secondary small">Capture / Upload Image</span>
             </div>
-          </div>
+            <div id="loading" class="alert alert-info d-flex align-items-center gap-2 py-2 mt-3 d-none">
+                <div class="spinner-border spinner-border-sm text-info" role="status"></div>
+                Processing image...
+            </div>
         </div>
-      </div>
     </div>
 
-    <!-- Side Panel -->
-    <div class="col-md-4 d-flex flex-column gap-3">
-      <!-- Cropped Plate -->
-      <div class="card bg-black border-secondary">
-        <div class="card-header border-secondary d-flex align-items-center gap-2 text-secondary small text-uppercase" style="letter-spacing:.06em">
-          <i class="bi bi-viewfinder"></i> Cropped plate
+    <!-- Main Grid -->
+    <div class="row g-3 mb-3">
+        <!-- Canvas -->
+        <div class="col-md-8">
+            <div class="card bg-black border-secondary h-100">
+                <div class="card-header border-secondary d-flex align-items-center gap-2 text-secondary small text-uppercase" style="letter-spacing:.06em">
+                    <i class="bi bi-image"></i> Captured Image
+                </div>
+                <div class="card-body p-3">
+                    <div class="position-relative bg-dark rounded" style="aspect-ratio:16/9">
+                        <div class="scan-frame"></div>
+                        <canvas id="canvas" class="w-100 rounded"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="card-body p-3">
-          <div class="bg-dark rounded d-flex align-items-center justify-content-center text-secondary small" style="aspect-ratio:2/1">
-            No plate
-          </div>
-        </div>
-      </div>
 
-      <!-- OCR Result -->
-      <div class="card bg-black border-secondary flex-grow-1">
-        <div class="card-header border-secondary d-flex align-items-center gap-2 text-secondary small text-uppercase" style="letter-spacing:.06em">
-          <i class="bi bi-fonts"></i> OCR result
-        </div>
-        <div class="card-body p-3">
-          <div class="text-secondary small mb-1" style="letter-spacing:.06em">PLATE NUMBER</div>
-          <div id="plateText" class="text-success fw-semibold font-monospace fs-4 letter-spacing-wide">_ _ – _ _ _ _</div>
-        </div>
-      </div>
-    </div>
-  </div>
+        <!-- Side Panel -->
+        <div class="col-md-4 d-flex flex-column gap-3">
+            <!-- Cropped Plate -->
+            <div class="card bg-black border-secondary">
+                <div class="card-header border-secondary d-flex align-items-center gap-2 text-secondary small text-uppercase" style="letter-spacing:.06em">
+                    <i class="bi bi-viewfinder"></i> Cropped Plate
+                </div>
+                <div class="card-body text-center p-3">
+                    <img id="croppedPlate" class="img-fluid rounded border border-secondary">
+                </div>
+            </div>
 
-  <!-- Stats Row -->
-  <div class="row g-3 mb-3">
-    <div class="col-4">
-      <div class="card bg-black border-secondary text-center py-2">
-        <div class="text-secondary small mb-1" style="letter-spacing:.05em">TOTAL SCANNED</div>
-        <div class="fw-semibold fs-4" id="totalCount">0</div>
-      </div>
+            <!-- OCR Result -->
+            <div class="card bg-black border-secondary flex-grow-1">
+                <div class="card-header border-secondary d-flex align-items-center gap-2 text-secondary small text-uppercase" style="letter-spacing:.06em">
+                    <i class="bi bi-fonts"></i> OCR Result
+                </div>
+                <div class="card-body p-3">
+                    <div class="text-secondary small mb-1" style="letter-spacing:.06em">PLATE NUMBER</div>
+                    <h4 class="text-success fw-semibold font-monospace" id="plateText">Waiting...</h4>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="col-4">
-      <div class="card bg-black border-secondary text-center py-2">
-        <div class="text-secondary small mb-1" style="letter-spacing:.05em">AVG CONFIDENCE</div>
-        <div class="fw-semibold fs-4" id="avgConf">—</div>
-      </div>
-    </div>
-    <div class="col-4">
-      <div class="card bg-black border-secondary text-center py-2">
-        <div class="text-secondary small mb-1" style="letter-spacing:.05em">LAST SCAN</div>
-        <div class="fw-semibold" id="lastScan">—</div>
-      </div>
-    </div>
-  </div>
 
-  <!-- Records Table -->
-  <div class="card bg-black border-secondary">
-    <div class="card-header border-secondary d-flex align-items-center justify-content-between">
-      <span class="d-flex align-items-center gap-2 text-secondary small text-uppercase" style="letter-spacing:.06em">
-        <i class="bi bi-database"></i> Saved records
-      </span>
-      <div class="d-flex gap-2">
-        <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" onclick="exportPdf()">
-          <i class="bi bi-file-earmark-arrow-down"></i> Export PDF
-        </button>
-        <button class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1" onclick="clearRecords()">
-          <i class="bi bi-trash"></i> Clear
-        </button>
-      </div>
+    <!-- Records -->
+    <div class="card bg-black border-secondary">
+        <div class="card-header border-secondary d-flex align-items-center justify-content-between">
+            <span class="d-flex align-items-center gap-2 text-secondary small text-uppercase" style="letter-spacing:.06em">
+                <i class="bi bi-database"></i> Saved Records
+            </span>
+            <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" id="exportPdfBtn">
+                    <i class="bi bi-file-earmark-arrow-down"></i> Export PDF
+                </button>
+                <button class="btn btn-sm btn-outline-danger d-flex align-items-center gap-1" id="clearBtn">
+                    <i class="bi bi-trash"></i> Clear
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0" id="recordsList"></div>
     </div>
-    <div class="card-body p-0" id="recordsList">
-      <div class="text-secondary text-center py-4 small">No records yet — capture an image to begin</div>
-    </div>
-  </div>
 
 </div>
-
-<script>
-const fakePlates = ['ABC-1234','XYZ-9087','MNP-5541','LKT-3320','QRD-7762'];
-const fakeConf   = [97, 91, 98, 88, 95];
-let records = [];
-
-function simulateScan() {
-  const alert = document.getElementById('loadingAlert');
-  const bar   = document.getElementById('scanBar');
-  alert.classList.remove('d-none');
-  bar.style.display = 'block';
-  setTimeout(() => {
-    alert.classList.add('d-none');
-    bar.style.display = 'none';
-    const idx   = Math.floor(Math.random() * fakePlates.length);
-    const plate = fakePlates[idx];
-    const conf  = fakeConf[idx];
-    document.getElementById('plateText').textContent = plate;
-    const time = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-    records.unshift({ plate, conf, time });
-    updateStats();
-    renderTable();
-  }, 2200);
-}
-
-function updateStats() {
-  document.getElementById('totalCount').textContent = records.length;
-  const avg = Math.round(records.reduce((s,r) => s + r.conf, 0) / records.length);
-  document.getElementById('avgConf').textContent = avg + '%';
-  document.getElementById('lastScan').textContent = records[0].time;
-}
-
-function renderTable() {
-  const el = document.getElementById('recordsList');
-  if (!records.length) {
-    el.innerHTML = '<div class="text-secondary text-center py-4 small">No records yet — capture an image to begin</div>';
-    return;
-  }
-  el.innerHTML = `<table class="table table-dark table-hover mb-0 align-middle">
-    <thead class="text-secondary small">
-      <tr><th>#</th><th>Plate</th><th>Time</th><th>Confidence</th></tr>
-    </thead>
-    <tbody class="small">
-      ${records.map((r,i) => `<tr>
-        <td class="text-secondary">${records.length - i}</td>
-        <td><span class="badge bg-success bg-opacity-10 text-success border border-success plate-chip">${r.plate}</span></td>
-        <td class="text-secondary font-monospace">${r.time}</td>
-        <td>
-          <div class="d-flex align-items-center gap-2">
-            <div class="bg-secondary rounded" style="width:60px;height:4px">
-              <div class="conf-bar bg-success" style="width:${r.conf}%"></div>
-            </div>
-            <span class="text-secondary">${r.conf}%</span>
-          </div>
-        </td>
-      </tr>`).join('')}
-    </tbody>
-  </table>`;
-}
-
-function clearRecords() {
-  records = [];
-  document.getElementById('plateText').textContent = '_ _ – _ _ _ _';
-  document.getElementById('totalCount').textContent = '0';
-  document.getElementById('avgConf').textContent = '—';
-  document.getElementById('lastScan').textContent = '—';
-  renderTable();
-}
-
-function exportPdf() { alert('PDF export triggered (jsPDF)'); }
-</script>
+<script src="app.js"></script>
 </body>
 </html>
