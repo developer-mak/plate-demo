@@ -298,6 +298,9 @@ function renderRecords() {
                     <div class="col-8 col-md-4">
                         <h4 class="text-success mb-1">${r.plate}</h4>
                         <small class="text-muted">${r.date}</small>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteRecord(${i})">
+                            Delete
+                        </button>
                     </div>
                     <div class="col-md-6">
                         <img src="${r.capturedImage}" class="img-fluid rounded border">
