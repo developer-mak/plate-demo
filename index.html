@@ -263,6 +263,16 @@
         .record-delete:hover {
             background: rgba(255, 0, 0, .18);
         }
+
+        .pulse {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: currentColor;
+            display: inline-block;
+            box-shadow: 0 0 12px currentColor;
+            animation: pulse 1.4s infinite;
+        }
     </style>
 </head>
 
@@ -274,18 +284,22 @@
     <header class="d-flex align-items-center justify-content-between">
         <h1 class="app-title">ALPR Hub</h1>
 
+        <span id="loading" class="ready-pill">
+            <span class="pulse"></span>
+            Loading Model...
+        </span>
         <span id="isReady" class="ready-pill d-none">
             <span class="pulse"></span>
             Ready
         </span>
     </header>
 
-    <div id="loading" class="alert d-none">
+    <!-- <div id="loading" class="alert d-none">
         <div class="d-flex align-items-center gap-2">
             <div class="spinner-border spinner-border-sm text-info"></div>
             <span>Processing image...</span>
         </div>
-    </div>
+    </div> -->
 
     <section class="glass-card preview-card">
         <div class="preview-wrap" id="previewWrap">
