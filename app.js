@@ -6,7 +6,6 @@ const croppedPlateImg = document.getElementById("croppedPlate");
 const plateText = document.getElementById("plateText");
 const loading_container = document.getElementById("loading_container");
 const loading = document.getElementById("loading");
-const isReady = document.getElementById("isReady");
 const recordsList = document.getElementById("recordsList");
 const exportPdfBtn = document.getElementById("exportPdfBtn");
 const clearBtn = document.getElementById("clearBtn");
@@ -22,14 +21,12 @@ window.onload = function(){
 };
 
 async function loadModels() {
-    loading_container.classList.remove("d-none");
     loading.innerText = "Loading AI models...";
 
     detectorModel = await ort.InferenceSession.create("./models/best.onnx");
     ocrModel = await ort.InferenceSession.create("./models/cct_s_v2_global.onnx");
 
-    loading_container.classList.add("d-none");
-    isReady.classList.remove("d-none");
+    loading.innerText = "Ready";
 }
 
 captureBtn.addEventListener("click", () => {
@@ -53,7 +50,6 @@ imageInput.addEventListener("change", async (e) => {
         return;
     }
 
-    loading_container.classList.remove("d-none");
     loading.innerText = "Processing image...";
     plateText.innerText = "Processing...";
     croppedPlateImg.removeAttribute("src");
