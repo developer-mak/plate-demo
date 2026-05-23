@@ -4,7 +4,7 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const croppedPlateImg = document.getElementById("croppedPlate");
 const plateText = document.getElementById("plateText");
-const loading_container = document.getElementById("loading_container");
+const loading_icon = document.getQuerySlectorAll("#loading_container span")[0];
 const loading = document.getElementById("loading");
 const recordsList = document.getElementById("recordsList");
 const exportPdfBtn = document.getElementById("exportPdfBtn");
@@ -21,11 +21,13 @@ window.onload = function(){
 };
 
 async function loadModels() {
+    loading_icon.setAttribute('class','bi bi-cloud-download pulse');
     loading.innerText = "Loading AI models...";
 
     detectorModel = await ort.InferenceSession.create("./models/best.onnx");
     ocrModel = await ort.InferenceSession.create("./models/cct_s_v2_global.onnx");
 
+    loading_icon.setAttribute('class','bi bi-record-circle pulse');
     loading.innerText = "Ready";
 }
 
@@ -50,6 +52,7 @@ imageInput.addEventListener("change", async (e) => {
         return;
     }
 
+    loading_icon.setAttribute('class','bi bi-camera-fill pulse');
     loading.innerText = "Processing image...";
     plateText.innerText = "Processing...";
     croppedPlateImg.removeAttribute("src");
