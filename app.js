@@ -296,31 +296,17 @@ function renderRecords() {
     }
 
     recordsList.innerHTML = records.map((r, i) => `
-        <div class="record-card mb-3">
-            <div class="record-card-body">
-                
-                <div class="record-image-wrapper">
-                    <img src="${r.croppedImage}" class="record-image">
-                </div>
+        <div class="record-item">
+            <img src="${r.croppedImage}" alt="Plate ${r.plate}">
     
-                <div class="record-content">
-                    <div class="plate-row">
-                        <span class="plate-badge">${r.plate}</span>
-                    </div>
-    
-                    <div class="record-date">
-                        <i class="bi bi-clock-history me-1"></i>
-                        ${r.date}
-                    </div>
-                </div>
-    
-                <div class="record-action">
-                    <button class="delete-btn" onclick="deleteRecord(${i})">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-    
+            <div>
+                <div class="record-plate font-monospace">${r.plate}</div>
+                <div class="record-date">${r.date}</div>
             </div>
+    
+            <button class="btn btn-sm btn-outline-danger record-delete" onclick="deleteRecord(${i})">
+                <i class="bi bi-trash"></i>
+            </button>
         </div>
     `).join("");
     // <div class="col-md-6">
