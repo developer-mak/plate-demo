@@ -109,102 +109,6 @@
             border-radius: 20px;
         }
 
-        .preview-placeholder {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--muted);
-            font-size: 14px;
-            pointer-events: none;
-        }
-
-        .scan-frame {
-            position: absolute;
-            inset: 12px;
-            pointer-events: none;
-            z-index: 3;
-        }
-
-        .scan-frame:before,
-        .scan-frame:after {
-            content: "";
-            position: absolute;
-            width: 42px;
-            height: 42px;
-            border-color: var(--cyan);
-            opacity: .85;
-        }
-
-        .scan-frame:before {
-            left: 0;
-            top: 0;
-            border-left: 3px solid;
-            border-top: 3px solid;
-        }
-
-        .scan-frame:after {
-            right: 0;
-            bottom: 0;
-            border-right: 3px solid;
-            border-bottom: 3px solid;
-        }
-
-        .scan-bar {
-            position: absolute;
-            left: 30px;
-            right: 30px;
-            height: 3px;
-            top: 50%;
-            background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-            box-shadow: 0 0 18px var(--cyan);
-            animation: scanMove 2.2s ease-in-out infinite;
-            z-index: 4;
-            display: none;
-        }
-
-        .processing .scan-bar {
-            display: block;
-        }
-
-        @keyframes scanMove {
-            0% { top: 50%; opacity: .8; }
-            25% { top: 15%; opacity: 1; }
-            60% { top: 82%; opacity: 1; }
-            100% { top: 50%; opacity: .8; }
-        }
-
-        .top-actions {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            right: 16px;
-            display: flex;
-            justify-content: space-between;
-            z-index: 5;
-        }
-
-        .circle-btn {
-            width: 46px;
-            height: 46px;
-            border-radius: 50%;
-            border: 0;
-            background: rgba(14, 21, 27, .72);
-            color: white;
-            box-shadow: 0 8px 20px rgba(0,0,0,.28);
-        }
-
-        .zoom-pill {
-            background: rgba(14, 21, 27, .72);
-            color: white;
-            padding: 10px 18px;
-            border-radius: 999px;
-            font-weight: 700;
-            display: flex;
-            gap: 14px;
-        }
-
         .result-card {
             margin-top: 14px;
             padding: 14px;
@@ -370,28 +274,6 @@
 
     <section class="glass-card preview-card">
         <div class="preview-wrap" id="previewWrap">
-            <div class="preview-placeholder">
-                Capture or upload vehicle image
-            </div>
-
-            <div class="top-actions">
-                <button class="circle-btn" type="button">
-                    <i class="bi bi-camera-fill"></i>
-                </button>
-
-                <div class="zoom-pill">
-                    <span class="opacity-50">x1</span>
-                    <span>x2</span>
-                </div>
-
-                <button class="circle-btn" type="button">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-
-            <div class="scan-frame"></div>
-            <div class="scan-bar"></div>
-
             <canvas id="canvas"></canvas>
         </div>
 
@@ -436,7 +318,6 @@
         <i class="bi bi-camera-fill"></i>
     </button>
 </div>
-<div class="scan-label">Scan on Go</div>
 
 <script src="app.js?v=1.2"></script>
 
