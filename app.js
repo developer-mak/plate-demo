@@ -52,7 +52,7 @@ imageInput.addEventListener("change", async (e) => {
         return;
     }
 
-    loading_icon.setAttribute('class','bi bi-camera-fill pulse');
+    loading_icon.setAttribute('class','bi bi-camera pulse');
     loading.innerText = "Processing image...";
     plateText.innerText = "Processing...";
     croppedPlateImg.removeAttribute("src");
@@ -65,7 +65,8 @@ imageInput.addEventListener("change", async (e) => {
 
     const result = await processImage(img);
 
-    loading.classList.add("d-none");
+    loading_icon.setAttribute('class','bi bi-record-circle pulse');
+    loading.innerText = "Ready";
 
     if (!result.success) {
         plateText.innerText = result.error;
