@@ -274,10 +274,10 @@
             <span class="pulse"></span>
             <span id="loading"></span>
         </span>
-        <span id="isReady" class="ready-pill d-none">
+        <!-- <span id="isReady" class="ready-pill d-none">
             <span class="pulse"></span>
             Ready
-        </span>
+        </span> -->
     </header>
 
     <!-- <div id="loading" class="alert d-none">
@@ -335,33 +335,6 @@
 </div>
 
 <script src="app.js?v=1.2"></script>
-
-<script>
-    /*
-      Optional helper:
-      If your app.js shows/hides #loading, this adds scan animation too.
-    */
-    const loadingObserver = new MutationObserver(() => {
-        const wrap = document.getElementById('previewWrap');
-        const loading = document.getElementById('loading');
-
-        if (!wrap || !loading) return;
-
-        if (!loading.classList.contains('d-none')) {
-            wrap.classList.add('processing');
-        } else {
-            wrap.classList.remove('processing');
-        }
-    });
-
-    const loadingEl = document.getElementById('loading');
-    if (loadingEl) {
-        loadingObserver.observe(loadingEl, {
-            attributes: true,
-            attributeFilter: ['class']
-        });
-    }
-</script>
 
 </body>
 </html>
