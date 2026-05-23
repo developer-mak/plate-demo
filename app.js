@@ -4,6 +4,7 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const croppedPlateImg = document.getElementById("croppedPlate");
 const plateText = document.getElementById("plateText");
+const response_time = document.getElementById("response_time");
 const loading_icon = document.querySelectorAll("#loading_container span")[0];
 const loading = document.getElementById("loading");
 const recordsList = document.getElementById("recordsList");
@@ -31,7 +32,9 @@ async function loadModels() {
     loading.innerText = "Ready";
 }
 
+let startTime = null;        
 captureBtn.addEventListener("click", () => {
+    startTime = performance.now();
     imageInput.value = "";
 
     if (window.innerWidth <= 768) {
@@ -74,7 +77,9 @@ imageInput.addEventListener("change", async (e) => {
     }
 
     plateText.innerText = result.plate;
-
+    const endTime = performance.now();
+    const duration = ((endTime - startTime) / 1000).toFixed(2);
+    response_time.innerText = 'Response Time: ' + duration;
     saveRecord({
         // capturedImage: result.capturedImage,
         croppedImage: result.croppedImage,
