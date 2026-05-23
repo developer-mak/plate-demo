@@ -93,7 +93,7 @@ function loadImage(file) {
 }
 
 async function processImage(img) {
-    const inputSize = 320;
+    const inputSize = 640;
 
     // canvas.width = img.width;
     // canvas.height = img.height;
