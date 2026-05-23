@@ -82,7 +82,7 @@ imageInput.addEventListener("change", async (e) => {
     const duration = ((endTime - startTime) / 1000).toFixed(2);
     response_time.innerText = 'Response Time: ' + duration;
     saveRecord({
-        // capturedImage: result.capturedImage,
+        response_time:duration,
         croppedImage: result.croppedImage,
         plate: result.plate,
         date: new Date().toLocaleString()
@@ -308,7 +308,7 @@ function renderRecords() {
     
             <div>
                 <div class="record-plate font-monospace">${r.plate}</div>
-                <div class="record-date">${r.date}</div>
+                <div class="record-date">${r.date} | ${r.response_time}</div>
             </div>
     
             <button class="btn btn-sm btn-outline-danger record-delete" onclick="deleteRecord(${i})">
