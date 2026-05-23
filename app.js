@@ -34,7 +34,7 @@ async function loadModels() {
 
 let startTime = null;        
 captureBtn.addEventListener("click", () => {
-    startTime = performance.now();
+    
     imageInput.value = "";
 
     if (window.innerWidth <= 768) {
@@ -66,6 +66,7 @@ imageInput.addEventListener("change", async (e) => {
     ctx.drawImage(img, 0, 0);
     await new Promise(r => setTimeout(r, 100));
 
+    startTime = performance.now();
     const result = await processImage(img);
 
     loading_icon.setAttribute('class','bi bi-record-circle pulse');
