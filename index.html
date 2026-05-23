@@ -272,7 +272,15 @@
     <input type="file" id="imageInput" accept="image/*" hidden>
 
     <header class="d-flex align-items-center justify-content-between">
-        <h1 class="app-title">ALPR Hub</h1>
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <div class="bg-black border border-secondary rounded-3 d-flex align-items-center justify-content-center" style="width:44px;height:44px">
+                <i class="bi bi-upc-scan text-info fs-5"></i>
+            </div>
+            <div>
+                <h5 class="mb-0 fw-semibold">PlateVision AI</h5>
+                <small class="text-secondary">License plate detection &amp; v1.2</small>
+            </div>
+        </div>
 
         <span id="loading_container" class="ready-pill">
             <span class="bi bi-cloud-download pulse"></span>
