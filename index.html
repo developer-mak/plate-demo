@@ -66,12 +66,13 @@
         }
 
         .pulse {
-            width: 9px;
+            /* width: 9px;
             height: 9px;
             border-radius: 50%;
             background: #00ded0;
             display: inline-block;
-            box-shadow: 0 0 12px var(--cyan);
+            box-shadow: 0 0 12px var(--cyan); */
+            color:var(--cyan);
             animation: pulse 1.5s infinite;
         }
 
@@ -274,7 +275,7 @@
         <h1 class="app-title">ALPR Hub</h1>
 
         <span id="loading_container" class="ready-pill">
-            <span class="pulse"></span>
+            <span class="bi bi-cloud-download pulse"></span>
             <span id="loading"></span>
         </span>
         <!-- <span id="isReady" class="ready-pill d-none">
