@@ -248,6 +248,107 @@
                 border-radius: 34px;
             }
         }
+
+        .record-card {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 18px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        
+        .record-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.25);
+        }
+        
+        .record-card-body {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 14px;
+        }
+        
+        .record-image-wrapper {
+            flex-shrink: 0;
+        }
+        
+        .record-image {
+            width: 90px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 2px solid rgba(255,255,255,0.15);
+        }
+        
+        .record-content {
+            flex: 1;
+        }
+        
+        .plate-row {
+            margin-bottom: 6px;
+        }
+        
+        .plate-badge {
+            background: linear-gradient(135deg, #00c853, #64dd17);
+            color: white;
+            font-size: 20px;
+            font-weight: 700;
+            padding: 6px 14px;
+            border-radius: 10px;
+            display: inline-block;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 12px rgba(0, 200, 83, 0.3);
+        }
+        
+        .record-date {
+            color: #cfcfcf;
+            font-size: 13px;
+        }
+        
+        .record-action {
+            display: flex;
+            align-items: center;
+        }
+        
+        .delete-btn {
+            width: 42px;
+            height: 42px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 0, 0, 0.12);
+            color: #ff5252;
+            transition: all 0.25s ease;
+        }
+        
+        .delete-btn:hover {
+            background: #ff5252;
+            color: white;
+            transform: scale(1.08);
+        }
+        
+        @media (max-width: 576px) {
+            .record-card-body {
+                gap: 10px;
+            }
+        
+            .record-image {
+                width: 75px;
+                height: 60px;
+            }
+        
+            .plate-badge {
+                font-size: 16px;
+                padding: 5px 10px;
+            }
+        
+            .delete-btn {
+                width: 36px;
+                height: 36px;
+            }
+        }
     </style>
 </head>
 
