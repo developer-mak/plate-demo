@@ -150,8 +150,8 @@ async function processImage(img) {
     croppedPlateImg.src = croppedBase64;
 
     ctx.strokeStyle = "red";
-    ctx.lineWidth = 3;
-    ctx.strokeRect(x, y, w, h);
+    ctx.lineWidth = 5;
+    ctx.strokeRect(x-5, y-5, w+5, h+5);
 
     const plate = await recognizePlateWithFastPlateOCR(plateCanvas);
 
