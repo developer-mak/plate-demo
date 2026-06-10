@@ -356,6 +356,26 @@
             color: var(--text);
         }
 
+        .update-note {
+            margin-top: 14px;
+            padding: 8px 14px;
+            font-size: 12px;
+            line-height: 1.4;
+            color: var(--muted);
+            background: rgba(0,222,208,.06);
+            border: 1px solid rgba(0,222,208,.14);
+            border-radius: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .update-note-label {
+            color: var(--cyan);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
         /* Skeleton loaders */
         @keyframes shimmer {
             0% { background-position: -400px 0; }
@@ -571,6 +591,11 @@
             Ready
         </span> -->
     </header>
+
+    <p id="lastUpdateNote" class="update-note" aria-live="polite">
+        <span class="update-note-label">Latest:</span>
+        <span id="lastUpdateText"></span>
+    </p>
 
     <section id="processingStepper" class="glass-card processing-stepper d-none" aria-live="polite">
         <div class="stepper-track">

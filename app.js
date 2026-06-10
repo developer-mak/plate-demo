@@ -1,3 +1,6 @@
+// Update this one-liner whenever code changes (shown in UI below header).
+const LAST_UPDATE_NOTE = "Adaptive outline & aligned stepper.";
+
 const imageInput = document.getElementById("imageInput");
 const captureBtn = document.getElementById("captureBtn");
 const canvas = document.getElementById("canvas");
@@ -20,6 +23,7 @@ const errorTitle = document.getElementById("errorTitle");
 const errorHint = document.getElementById("errorHint");
 const resultContent = document.getElementById("resultContent");
 const toastBanner = document.getElementById("toastBanner");
+const lastUpdateText = document.getElementById("lastUpdateText");
 
 const STORAGE_KEY = "plate_demo_records";
 const STEPPER_STEPS = ["upload", "detect", "ocr", "done"];
@@ -39,6 +43,7 @@ let ocrModel;
 let stepperResetTimer = null;
 
 window.onload = function () {
+    lastUpdateText.textContent = LAST_UPDATE_NOTE;
     loadModels();
     renderRecords();
     setIdleResultState();
