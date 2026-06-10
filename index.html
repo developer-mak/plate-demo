@@ -129,6 +129,10 @@
             border: 1px solid rgba(255,255,255,.16);
         }
 
+        #croppedPlate:not([src]) {
+            display: none;
+        }
+
         .plate-number {
             font-size: 23px;
             font-weight: 800;
@@ -265,6 +269,278 @@
             background: rgba(255, 0, 0, .18);
         }
 
+        /* Processing stepper */
+        .processing-stepper {
+            margin-top: 20px;
+            padding: 14px 16px;
+        }
+
+        .stepper-track {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .stepper-track::before {
+            content: "";
+            position: absolute;
+            top: 15px;
+            left: 8%;
+            right: 8%;
+            height: 2px;
+            background: rgba(255,255,255,.12);
+            z-index: 0;
+        }
+
+        .stepper-progress {
+            position: absolute;
+            top: 15px;
+            left: 8%;
+            height: 2px;
+            background: var(--cyan);
+            box-shadow: 0 0 8px rgba(0,222,208,.5);
+            z-index: 1;
+            transition: width .35s ease;
+            width: 0%;
+        }
+
+        .stepper-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            position: relative;
+            z-index: 2;
+            text-align: center;
+        }
+
+        .stepper-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            background: rgba(255,255,255,.08);
+            border: 2px solid rgba(255,255,255,.15);
+            color: var(--muted);
+            transition: all .3s ease;
+        }
+
+        .stepper-step.active .stepper-icon {
+            background: rgba(0,222,208,.15);
+            border-color: var(--cyan);
+            color: var(--cyan);
+            box-shadow: 0 0 14px rgba(0,222,208,.35);
+        }
+
+        .stepper-step.done .stepper-icon {
+            background: var(--cyan);
+            border-color: var(--cyan);
+            color: #062426;
+        }
+
+        .stepper-label {
+            font-size: 11px;
+            color: var(--muted);
+            line-height: 1.2;
+            max-width: 72px;
+        }
+
+        .stepper-step.active .stepper-label,
+        .stepper-step.done .stepper-label {
+            color: var(--text);
+        }
+
+        /* Skeleton loaders */
+        @keyframes shimmer {
+            0% { background-position: -400px 0; }
+            100% { background-position: 400px 0; }
+        }
+
+        .skeleton {
+            background: linear-gradient(90deg, rgba(255,255,255,.04) 25%, rgba(255,255,255,.12) 50%, rgba(255,255,255,.04) 75%);
+            background-size: 800px 100%;
+            animation: shimmer 1.4s infinite linear;
+            border-radius: 12px;
+        }
+
+        .skeleton-preview {
+            width: 100%;
+            min-height: 260px;
+            border-radius: 20px;
+        }
+
+        .skeleton-result {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .skeleton-thumb {
+            width: 100px;
+            height: 64px;
+            flex-shrink: 0;
+        }
+
+        .skeleton-lines {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .skeleton-line {
+            height: 14px;
+        }
+
+        .skeleton-line.short {
+            width: 55%;
+        }
+
+        .skeleton-line.medium {
+            width: 75%;
+        }
+
+        .is-loading-models .preview-content,
+        .is-loading-models .result-content {
+            display: none !important;
+        }
+
+        .skeleton-wrap {
+            display: none;
+        }
+
+        .is-loading-models .skeleton-wrap {
+            display: block;
+        }
+
+        /* Empty & error states */
+        .preview-empty {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: var(--muted);
+            padding: 24px;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .preview-empty i {
+            font-size: 42px;
+            color: rgba(0,222,208,.35);
+        }
+
+        .preview-empty p {
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .preview-empty.hidden {
+            display: none;
+        }
+
+        .error-state {
+            display: none;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 12px;
+            background: rgba(255, 80, 80, .08);
+            border: 1px solid rgba(255, 100, 100, .2);
+            border-radius: 16px;
+        }
+
+        .error-state.visible {
+            display: flex;
+        }
+
+        .error-state i {
+            font-size: 28px;
+            color: #ff7b7b;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .error-title {
+            font-weight: 700;
+            color: #ffb4b4;
+            font-size: 15px;
+        }
+
+        .error-hint {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .result-content.hidden {
+            display: none !important;
+        }
+
+        .confidence-badge {
+            display: inline-block;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--cyan);
+            background: rgba(0,222,208,.12);
+            border: 1px solid rgba(0,222,208,.25);
+            border-radius: 999px;
+            padding: 3px 10px;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        .confidence-badge.low {
+            color: #ffb86c;
+            background: rgba(255, 184, 108, .12);
+            border-color: rgba(255, 184, 108, .3);
+        }
+
+        .empty-records {
+            text-align: center;
+            padding: 28px 16px;
+            color: var(--muted);
+        }
+
+        .empty-records i {
+            font-size: 40px;
+            color: rgba(0,222,208,.3);
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .empty-records p {
+            margin: 0 0 4px;
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .empty-records small {
+            font-size: 13px;
+        }
+
+        .toast-banner {
+            display: none;
+            margin-top: 10px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            background: rgba(255, 184, 108, .1);
+            border: 1px solid rgba(255, 184, 108, .25);
+            color: #ffd4a8;
+        }
+
+        .toast-banner.visible {
+            display: block;
+        }
+
         
     </style>
 </head>
@@ -295,26 +571,75 @@
         </span> -->
     </header>
 
-    <!-- <div id="loading" class="alert d-none">
-        <div class="d-flex align-items-center gap-2">
-            <div class="spinner-border spinner-border-sm text-info"></div>
-            <span>Processing image...</span>
-        </div>
-    </div> -->
+    <section id="processingStepper" class="glass-card processing-stepper d-none" aria-live="polite">
+        <div class="stepper-track">
+            <div class="stepper-progress" id="stepperProgress"></div>
 
-    <section class="glass-card preview-card">
+            <div class="stepper-step" data-step="upload">
+                <div class="stepper-icon"><i class="bi bi-cloud-upload"></i></div>
+                <span class="stepper-label">Uploading</span>
+            </div>
+            <div class="stepper-step" data-step="detect">
+                <div class="stepper-icon"><i class="bi bi-bounding-box"></i></div>
+                <span class="stepper-label">Detecting</span>
+            </div>
+            <div class="stepper-step" data-step="ocr">
+                <div class="stepper-icon"><i class="bi bi-type"></i></div>
+                <span class="stepper-label">Reading plate</span>
+            </div>
+            <div class="stepper-step" data-step="done">
+                <div class="stepper-icon"><i class="bi bi-check-lg"></i></div>
+                <span class="stepper-label">Done</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="previewSection" class="glass-card preview-card is-loading-models">
         <div class="preview-wrap" id="previewWrap">
-            <canvas id="canvas"></canvas>
+            <div id="previewSkeleton" class="skeleton-wrap">
+                <div class="skeleton skeleton-preview"></div>
+            </div>
+
+            <div id="previewContent" class="preview-content">
+                <div id="previewEmpty" class="preview-empty">
+                    <i class="bi bi-camera"></i>
+                    <p>Capture or upload a vehicle image</p>
+                </div>
+                <canvas id="canvas"></canvas>
+            </div>
         </div>
 
         <div class="glass-card result-card">
-            <div class="d-flex align-items-center gap-3">
-                <img id="croppedPlate" alt="Cropped Plate">
+            <div id="resultSkeleton" class="skeleton-wrap">
+                <div class="skeleton-result">
+                    <div class="skeleton skeleton-thumb"></div>
+                    <div class="skeleton-lines">
+                        <div class="skeleton skeleton-line short"></div>
+                        <div class="skeleton skeleton-line medium"></div>
+                    </div>
+                </div>
+            </div>
 
-                <div class="flex-grow-1">
-                    <div class="muted-label text-uppercase">License Plate</div>
-                    <div class="plate-number font-monospace" id="plateText">Waiting...</div>
-                    <div class="muted-label" id="response_time">Upload or Capture Vehicle Image</div>
+            <div id="errorState" class="error-state">
+                <i class="bi bi-exclamation-circle"></i>
+                <div>
+                    <div class="error-title" id="errorTitle">No plate found</div>
+                    <div class="error-hint" id="errorHint">Try closer, brighter, or straighter angle</div>
+                </div>
+            </div>
+
+            <div id="resultContent" class="result-content">
+                <div class="d-flex align-items-center gap-3">
+                    <img id="croppedPlate" alt="Cropped Plate">
+
+                    <div class="flex-grow-1">
+                        <div class="muted-label text-uppercase">License Plate</div>
+                        <div>
+                            <span class="plate-number font-monospace" id="plateText">Waiting...</span>
+                            <span id="confidenceBadge" class="confidence-badge d-none"></span>
+                        </div>
+                        <div class="muted-label" id="response_time">Upload or Capture Vehicle Image</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -338,6 +663,7 @@
             </div>
         </div>
 
+        <div id="toastBanner" class="toast-banner"></div>
         <div id="recordsList"></div>
     </section>
 
@@ -349,7 +675,7 @@
     </button>
 </div>
 
-<script src="app.js?v=1.2"></script>
+<script src="app.js?v=1.3"></script>
 
 </body>
 </html>

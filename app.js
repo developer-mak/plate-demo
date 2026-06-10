@@ -4,37 +4,131 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 const croppedPlateImg = document.getElementById("croppedPlate");
 const plateText = document.getElementById("plateText");
+const confidenceBadge = document.getElementById("confidenceBadge");
 const response_time = document.getElementById("response_time");
 const loading_icon = document.querySelectorAll("#loading_container span")[0];
 const loading = document.getElementById("loading");
 const recordsList = document.getElementById("recordsList");
 const exportPdfBtn = document.getElementById("exportPdfBtn");
 const clearBtn = document.getElementById("clearBtn");
+const previewSection = document.getElementById("previewSection");
+const previewEmpty = document.getElementById("previewEmpty");
+const processingStepper = document.getElementById("processingStepper");
+const stepperProgress = document.getElementById("stepperProgress");
+const errorState = document.getElementById("errorState");
+const errorTitle = document.getElementById("errorTitle");
+const errorHint = document.getElementById("errorHint");
+const resultContent = document.getElementById("resultContent");
+const toastBanner = document.getElementById("toastBanner");
 
 const STORAGE_KEY = "plate_demo_records";
+const STEPPER_STEPS = ["upload", "detect", "ocr", "done"];
+const ERROR_MESSAGES = {
+    no_plate: {
+        title: "No plate found",
+        hint: "Try closer, brighter, or straighter angle"
+    },
+    models_loading: {
+        title: "Models still loading",
+        hint: "Please wait a moment and try again"
+    }
+};
 
 let detectorModel;
 let ocrModel;
+let stepperResetTimer = null;
 
-window.onload = function(){
+window.onload = function () {
     loadModels();
     renderRecords();
+    setIdleResultState();
 };
 
 async function loadModels() {
-    loading_icon.setAttribute('class','bi bi-cloud-download pulse');
+    previewSection.classList.add("is-loading-models");
+    loading_icon.setAttribute("class", "bi bi-cloud-download pulse");
     loading.innerText = "Loading AI models...";
 
     detectorModel = await ort.InferenceSession.create("./models/best.onnx");
     ocrModel = await ort.InferenceSession.create("./models/cct_s_v2_global.onnx");
 
-    loading_icon.setAttribute('class','bi bi-record-circle pulse');
+    previewSection.classList.remove("is-loading-models");
+    loading_icon.setAttribute("class", "bi bi-record-circle pulse");
     loading.innerText = "Ready";
 }
 
-let startTime = null;        
+function setProcessingStep(step) {
+    clearTimeout(stepperResetTimer);
+    processingStepper.classList.remove("d-none");
+
+    const stepIndex = STEPPER_STEPS.indexOf(step);
+    const progressPercent = stepIndex <= 0 ? 0 : (stepIndex / (STEPPER_STEPS.length - 1)) * 84;
+
+    stepperProgress.style.width = `${progressPercent}%`;
+
+    document.querySelectorAll(".stepper-step").forEach(el => {
+        const currentIndex = STEPPER_STEPS.indexOf(el.dataset.step);
+        el.classList.remove("active", "done");
+
+        if (currentIndex < stepIndex) {
+            el.classList.add("done");
+        } else if (currentIndex === stepIndex) {
+            el.classList.add("active");
+        }
+    });
+}
+
+function hideProcessingStepper() {
+    processingStepper.classList.add("d-none");
+    document.querySelectorAll(".stepper-step").forEach(el => {
+        el.classList.remove("active", "done");
+    });
+    stepperProgress.style.width = "0%";
+}
+
+function scheduleStepperReset() {
+    stepperResetTimer = setTimeout(hideProcessingStepper, 2500);
+}
+
+function setIdleResultState() {
+    errorState.classList.remove("visible");
+    resultContent.classList.remove("hidden");
+    plateText.innerText = "Waiting...";
+    confidenceBadge.classList.add("d-none");
+    response_time.innerText = "Upload or Capture Vehicle Image";
+}
+
+function showErrorState(type, customHint) {
+    const message = ERROR_MESSAGES[type] || ERROR_MESSAGES.no_plate;
+
+    errorTitle.innerText = message.title;
+    errorHint.innerText = customHint || message.hint;
+    errorState.classList.add("visible");
+    resultContent.classList.add("hidden");
+    confidenceBadge.classList.add("d-none");
+    plateText.innerText = "—";
+    response_time.innerText = "Scan failed — adjust and try again";
+}
+
+function showToast(message) {
+    toastBanner.innerText = message;
+    toastBanner.classList.add("visible");
+
+    setTimeout(() => {
+        toastBanner.classList.remove("visible");
+    }, 3500);
+}
+
+function showConfidence(confidence) {
+    const percent = Math.round(confidence * 100);
+    confidenceBadge.innerText = `${percent}%`;
+    confidenceBadge.classList.remove("d-none", "low");
+    confidenceBadge.classList.toggle("low", percent < 60);
+}
+
+let startTime = null;
+
 captureBtn.addEventListener("click", () => {
-    
     imageInput.value = "";
 
     if (window.innerWidth <= 768) {
@@ -51,40 +145,59 @@ imageInput.addEventListener("change", async (e) => {
     if (!file) return;
 
     if (!detectorModel || !ocrModel) {
-        alert("Models are still loading.");
+        showErrorState("models_loading");
+        showToast("AI models are still loading. Please wait.");
         return;
     }
 
-    loading_icon.setAttribute('class','bi bi-camera pulse');
-    loading.innerText = "Processing image...";
+    setProcessingStep("upload");
+    loading_icon.setAttribute("class", "bi bi-camera pulse");
+    loading.innerText = "Processing...";
+    errorState.classList.remove("visible");
+    resultContent.classList.remove("hidden");
     plateText.innerText = "Processing...";
+    confidenceBadge.classList.add("d-none");
     croppedPlateImg.removeAttribute("src");
 
     const img = await loadImage(file);
+    previewEmpty.classList.add("hidden");
     canvas.width = img.width;
     canvas.height = img.height;
     ctx.drawImage(img, 0, 0);
     await new Promise(r => setTimeout(r, 100));
 
+    setProcessingStep("detect");
     startTime = performance.now();
+
     const result = await processImage(img);
 
-    loading_icon.setAttribute('class','bi bi-record-circle pulse');
-    loading.innerText = "Ready";
-
     if (!result.success) {
-        plateText.innerText = result.error;
+        setProcessingStep("done");
+        scheduleStepperReset();
+        loading_icon.setAttribute("class", "bi bi-record-circle pulse");
+        loading.innerText = "Ready";
+        showErrorState("no_plate");
         return;
     }
 
+    setProcessingStep("done");
+    scheduleStepperReset();
+
+    loading_icon.setAttribute("class", "bi bi-record-circle pulse");
+    loading.innerText = "Ready";
+
     plateText.innerText = result.plate;
+    showConfidence(result.confidence);
+
     const endTime = performance.now();
     const duration = ((endTime - startTime) / 1000).toFixed(2);
-    response_time.innerText = 'Response Time: ' + duration+' Sec';
+    response_time.innerText = "Response Time: " + duration + " Sec";
+
     saveRecord({
-        response_time:duration,
+        response_time: duration,
         croppedImage: result.croppedImage,
         plate: result.plate,
+        confidence: result.confidence,
         date: new Date().toLocaleString()
     });
 
@@ -101,10 +214,6 @@ function loadImage(file) {
 
 async function processImage(img) {
     const inputSize = 640;
-
-    // canvas.width = img.width;
-    // canvas.height = img.height;
-    // ctx.drawImage(img, 0, 0);
 
     const inputCanvas = document.createElement("canvas");
     inputCanvas.width = inputSize;
@@ -132,7 +241,7 @@ async function processImage(img) {
     const detections = parseYoloV8Output(output.data, output.dims);
 
     if (detections.length === 0) {
-        return { success: false, error: "No plate detected" };
+        return { success: false, error: "no_plate" };
     }
 
     const best = detections[0];
@@ -157,13 +266,15 @@ async function processImage(img) {
 
     ctx.strokeStyle = "red";
     ctx.lineWidth = 5;
-    ctx.strokeRect(x-5, y-5, w+5, h+5);
+    ctx.strokeRect(x - 5, y - 5, w + 5, h + 5);
 
+    setProcessingStep("ocr");
     const plate = await recognizePlateWithFastPlateOCR(plateCanvas);
 
     return {
         success: true,
         plate,
+        confidence: best.confidence,
         croppedImage: croppedBase64,
         capturedImage: canvas.toDataURL("image/jpeg", 0.8)
     };
@@ -294,31 +405,43 @@ function saveRecord(record) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
 }
 
+function formatConfidence(confidence) {
+    if (confidence == null) return "";
+    const percent = Math.round(confidence * 100);
+    return `<span class="confidence-badge${percent < 60 ? " low" : ""}">${percent}%</span>`;
+}
+
 function renderRecords() {
     const records = getRecords();
 
     if (records.length === 0) {
-        recordsList.innerHTML = `<p class="text-muted">No records saved yet.</p>`;
+        recordsList.innerHTML = `
+            <div class="empty-records">
+                <i class="bi bi-inbox"></i>
+                <p>No scans yet</p>
+                <small>Captured plates will appear here temporarily</small>
+            </div>
+        `;
         return;
     }
 
     recordsList.innerHTML = records.map((r, i) => `
         <div class="record-item">
             <img src="${r.croppedImage}" alt="Plate ${r.plate}">
-    
+
             <div>
-                <div class="record-plate font-monospace">${r.plate}</div>
+                <div class="record-plate font-monospace">
+                    ${r.plate}
+                    ${r.confidence != null ? formatConfidence(r.confidence) : ""}
+                </div>
                 <div class="record-date">${r.date} | ${r.response_time} Sec</div>
             </div>
-    
+
             <button class="btn btn-sm btn-outline-danger record-delete" onclick="deleteRecord(${i})">
                 <i class="bi bi-trash"></i>
             </button>
         </div>
     `).join("");
-    // <div class="col-md-6">
-    //     <img src="${r.capturedImage}" class="img-fluid rounded border">
-    // </div>
 }
 
 function deleteRecord(index) {
@@ -335,7 +458,7 @@ exportPdfBtn.addEventListener("click", () => {
     const records = getRecords();
 
     if (records.length === 0) {
-        alert("No records to export.");
+        showToast("No records to export yet.");
         return;
     }
 
@@ -354,8 +477,12 @@ exportPdfBtn.addEventListener("click", () => {
             y = 15;
         }
 
+        const confidenceText = r.confidence != null
+            ? ` (${Math.round(r.confidence * 100)}%)`
+            : "";
+
         pdf.setFontSize(12);
-        pdf.text(`${i + 1}. Plate: ${r.plate}`, 14, y);
+        pdf.text(`${i + 1}. Plate: ${r.plate}${confidenceText}`, 14, y);
         pdf.text(`Date: ${r.date}`, 14, y + 7);
 
         pdf.addImage(r.croppedImage, "JPEG", 140, y - 5, 50, 25);
