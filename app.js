@@ -215,7 +215,7 @@ function loadImage(file) {
 function getAdaptiveLineWidth(imgWidth) {
     const previewWrap = document.getElementById("previewWrap");
     const displayWidth = previewWrap.clientWidth || imgWidth;
-    const targetScreenPx = 4.5;
+    const targetScreenPx = 3.375;
     const lineWidth = (targetScreenPx * imgWidth) / displayWidth;
 
     return Math.max(3, Math.min(36, Math.round(lineWidth)));
