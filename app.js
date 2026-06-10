@@ -212,6 +212,73 @@ function loadImage(file) {
     });
 }
 
+function getAdaptiveLineWidth(imgWidth) {
+    const previewWrap = document.getElementById("previewWrap");
+    const displayWidth = previewWrap.clientWidth || imgWidth;
+    const targetScreenPx = 4.5;
+    const lineWidth = (targetScreenPx * imgWidth) / displayWidth;
+
+    return Math.max(3, Math.min(36, Math.round(lineWidth)));
+}
+
+function getBoxSurroundLuminance(ctx, x, y, w, h, pad) {
+    const canvas = ctx.canvas;
+    const outerX = Math.max(0, Math.floor(x - pad));
+    const outerY = Math.max(0, Math.floor(y - pad));
+    const outerW = Math.min(canvas.width - outerX, Math.ceil(w + pad * 2));
+    const outerH = Math.min(canvas.height - outerY, Math.ceil(h + pad * 2));
+    const innerX = Math.floor(x);
+    const innerY = Math.floor(y);
+    const innerW = Math.ceil(w);
+    const innerH = Math.ceil(h);
+
+    const data = ctx.getImageData(outerX, outerY, outerW, outerH).data;
+    let sum = 0;
+    let count = 0;
+
+    for (let py = 0; py < outerH; py++) {
+        for (let px = 0; px < outerW; px++) {
+            const absX = outerX + px;
+            const absY = outerY + py;
+
+            if (absX >= innerX && absX < innerX + innerW && absY >= innerY && absY < innerY + innerH) {
+                continue;
+            }
+
+            const i = (py * outerW + px) * 4;
+            sum += 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+            count++;
+        }
+    }
+
+    return count ? sum / count : 128;
+}
+
+function getContrastStrokeColor(luminance) {
+    if (luminance < 128) {
+        return "#00ffcc";
+    }
+
+    return "#c62828";
+}
+
+function drawPlateHighlight(ctx, x, y, w, h, imgWidth) {
+    const lineWidth = getAdaptiveLineWidth(imgWidth);
+    const samplePad = Math.max(8, Math.min(w, h) * 0.2);
+    const luminance = getBoxSurroundLuminance(ctx, x, y, w, h, samplePad);
+    const strokeColor = getContrastStrokeColor(luminance);
+    const inset = lineWidth / 2;
+
+    ctx.save();
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = lineWidth;
+    ctx.lineJoin = "round";
+    ctx.strokeRect(x - inset, y - inset, w + inset * 2, h + inset * 2);
+    ctx.restore();
+
+    return { lineWidth, strokeColor, luminance };
+}
+
 async function processImage(img) {
     const inputSize = 640;
 
@@ -264,9 +331,7 @@ async function processImage(img) {
     const croppedBase64 = plateCanvas.toDataURL("image/jpeg", 0.9);
     croppedPlateImg.src = croppedBase64;
 
-    ctx.strokeStyle = "red";
-    ctx.lineWidth = 5;
-    ctx.strokeRect(x - 5, y - 5, w + 5, h + 5);
+    drawPlateHighlight(ctx, x, y, w, h, img.width);
 
     setProcessingStep("ocr");
     const plate = await recognizePlateWithFastPlateOCR(plateCanvas);
