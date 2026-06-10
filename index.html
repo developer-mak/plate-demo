@@ -286,8 +286,8 @@
             content: "";
             position: absolute;
             top: 15px;
-            left: 8%;
-            right: 8%;
+            left: var(--stepper-line-left, 12.5%);
+            width: var(--stepper-line-width, 75%);
             height: 2px;
             background: rgba(255,255,255,.12);
             z-index: 0;
@@ -296,13 +296,14 @@
         .stepper-progress {
             position: absolute;
             top: 15px;
-            left: 8%;
+            left: var(--stepper-line-left, 12.5%);
             height: 2px;
             background: var(--cyan);
             box-shadow: 0 0 8px rgba(0,222,208,.5);
             z-index: 1;
             transition: width .35s ease;
-            width: 0%;
+            width: 0;
+            max-width: var(--stepper-line-width, 75%);
         }
 
         .stepper-step {

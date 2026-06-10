@@ -57,24 +57,44 @@ async function loadModels() {
     loading.innerText = "Ready";
 }
 
+function syncStepperLineLayout() {
+    const track = document.querySelector(".stepper-track");
+    const icons = track.querySelectorAll(".stepper-icon");
+    if (icons.length < 2) return;
+
+    const trackRect = track.getBoundingClientRect();
+    const firstCenter = icons[0].getBoundingClientRect().left + icons[0].offsetWidth / 2 - trackRect.left;
+    const lastCenter = icons[icons.length - 1].getBoundingClientRect().left + icons[icons.length - 1].offsetWidth / 2 - trackRect.left;
+    const lineWidth = lastCenter - firstCenter;
+
+    track.style.setProperty("--stepper-line-left", `${firstCenter}px`);
+    track.style.setProperty("--stepper-line-width", `${lineWidth}px`);
+}
+
 function setProcessingStep(step) {
     clearTimeout(stepperResetTimer);
     processingStepper.classList.remove("d-none");
 
-    const stepIndex = STEPPER_STEPS.indexOf(step);
-    const progressPercent = stepIndex <= 0 ? 0 : (stepIndex / (STEPPER_STEPS.length - 1)) * 84;
+    requestAnimationFrame(() => {
+        syncStepperLineLayout();
 
-    stepperProgress.style.width = `${progressPercent}%`;
+        const stepIndex = STEPPER_STEPS.indexOf(step);
+        const track = document.querySelector(".stepper-track");
+        const lineWidth = parseFloat(track.style.getPropertyValue("--stepper-line-width")) || track.clientWidth * 0.75;
+        const progress = stepIndex <= 0 ? 0 : stepIndex / (STEPPER_STEPS.length - 1);
 
-    document.querySelectorAll(".stepper-step").forEach(el => {
-        const currentIndex = STEPPER_STEPS.indexOf(el.dataset.step);
-        el.classList.remove("active", "done");
+        stepperProgress.style.width = `${lineWidth * progress}px`;
 
-        if (currentIndex < stepIndex) {
-            el.classList.add("done");
-        } else if (currentIndex === stepIndex) {
-            el.classList.add("active");
-        }
+        document.querySelectorAll(".stepper-step").forEach(el => {
+            const currentIndex = STEPPER_STEPS.indexOf(el.dataset.step);
+            el.classList.remove("active", "done");
+
+            if (currentIndex < stepIndex) {
+                el.classList.add("done");
+            } else if (currentIndex === stepIndex) {
+                el.classList.add("active");
+            }
+        });
     });
 }
 
@@ -83,8 +103,17 @@ function hideProcessingStepper() {
     document.querySelectorAll(".stepper-step").forEach(el => {
         el.classList.remove("active", "done");
     });
-    stepperProgress.style.width = "0%";
+    stepperProgress.style.width = "0";
 }
+
+window.addEventListener("resize", () => {
+    if (!processingStepper.classList.contains("d-none")) {
+        const activeStep = STEPPER_STEPS.find(step =>
+            document.querySelector(`.stepper-step[data-step="${step}"]`)?.classList.contains("active")
+        );
+        if (activeStep) setProcessingStep(activeStep);
+    }
+});
 
 function scheduleStepperReset() {
     stepperResetTimer = setTimeout(hideProcessingStepper, 2500);
