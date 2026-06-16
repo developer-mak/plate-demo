@@ -1,7 +1,13 @@
 const INSTALL_DISMISS_KEY = "platevision_install_dismissed";
+const APP_BUILD_VERSION = "1.4.1";
 
 let deferredInstallPrompt = null;
 let swRegistration = null;
+
+function isStandalone() {
+  return window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true;
+}
 
 function showToast(message) {
   const toastBanner = document.getElementById("toastBanner");
@@ -54,7 +60,7 @@ async function checkOfflineReady() {
 function showInstallBanner() {
   const banner = document.getElementById("installBanner");
   if (!banner || localStorage.getItem(INSTALL_DISMISS_KEY) === "1") return;
-  if (window.matchMedia("(display-mode: standalone)").matches) return;
+  if (isStandalone()) return;
 
   banner.classList.remove("d-none");
 }
@@ -69,25 +75,52 @@ function showUpdateBanner() {
   if (banner) banner.classList.remove("d-none");
 }
 
+function applyServiceWorkerUpdate(worker) {
+  if (!worker) return;
+
+  showToast("Updating app…");
+
+  worker.postMessage({ type: "SKIP_WAITING" });
+}
+
+function handleWaitingWorker(worker) {
+  if (!worker || !navigator.serviceWorker.controller) return;
+
+  if (isStandalone()) {
+    applyServiceWorkerUpdate(worker);
+    return;
+  }
+
+  showUpdateBanner();
+}
+
+async function checkForUpdates() {
+  if (!swRegistration || !navigator.onLine) return;
+
+  try {
+    await swRegistration.update();
+  } catch (_) {}
+}
+
 async function registerServiceWorker() {
   if (!("serviceWorker" in navigator)) return;
 
   try {
-    swRegistration = await navigator.serviceWorker.register("./sw.js");
+    swRegistration = await navigator.serviceWorker.register(`./sw.js?v=${APP_BUILD_VERSION}`);
 
     swRegistration.addEventListener("updatefound", () => {
       const newWorker = swRegistration.installing;
       if (!newWorker) return;
 
       newWorker.addEventListener("statechange", () => {
-        if (newWorker.state === "installed" && navigator.serviceWorker.controller) {
-          showUpdateBanner();
+        if (newWorker.state === "installed") {
+          handleWaitingWorker(newWorker);
         }
       });
     });
 
-    if (swRegistration.waiting && navigator.serviceWorker.controller) {
-      showUpdateBanner();
+    if (swRegistration.waiting) {
+      handleWaitingWorker(swRegistration.waiting);
     }
 
     navigator.serviceWorker.addEventListener("controllerchange", () => {
@@ -100,6 +133,7 @@ async function registerServiceWorker() {
       swRegistration.active.postMessage({ type: "CACHE_ASSETS" });
     }
 
+    await checkForUpdates();
     await checkOfflineReady();
     setTimeout(checkOfflineReady, 8000);
   } catch (error) {
@@ -125,9 +159,21 @@ function initPwaUi() {
     showToast("PlateVision installed successfully.");
   });
 
-  window.addEventListener("online", () => setOfflineBadge(false));
+  window.addEventListener("online", () => {
+    setOfflineBadge(false);
+    checkForUpdates();
+  });
+
   window.addEventListener("offline", () => setOfflineBadge(true));
   setOfflineBadge(!navigator.onLine);
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      checkForUpdates();
+    }
+  });
+
+  window.addEventListener("focus", checkForUpdates);
 
   installBtn?.addEventListener("click", async () => {
     if (!deferredInstallPrompt) {
@@ -152,7 +198,7 @@ function initPwaUi() {
 
   updateBtn?.addEventListener("click", () => {
     if (swRegistration?.waiting) {
-      swRegistration.waiting.postMessage({ type: "SKIP_WAITING" });
+      applyServiceWorkerUpdate(swRegistration.waiting);
       return;
     }
     window.location.reload();

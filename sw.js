@@ -1,4 +1,4 @@
-const CACHE_VERSION = "platevision-v1.4.0";
+const CACHE_VERSION = "platevision-v1.4.1";
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const ASSET_CACHE = `${CACHE_VERSION}-assets`;
 
@@ -90,6 +90,17 @@ function isCdn(url) {
   return url.hostname === "cdn.jsdelivr.net";
 }
 
+function isShellAsset(url) {
+  if (!isSameOrigin(url)) return false;
+
+  const path = url.pathname;
+  return path.endsWith(".js") ||
+    path.endsWith(".html") ||
+    path.endsWith(".webmanifest") ||
+    path === "/" ||
+    path.endsWith("/");
+}
+
 function isCacheableRequest(request) {
   return request.method === "GET";
 }
@@ -131,22 +142,6 @@ async function networkFirst(request) {
   }
 }
 
-async function staleWhileRevalidate(request) {
-  const cache = await caches.open(STATIC_CACHE);
-  const cached = await cache.match(request);
-
-  const networkPromise = fetch(request)
-    .then(response => {
-      if (response.ok) {
-        cache.put(request, response.clone());
-      }
-      return response;
-    })
-    .catch(() => null);
-
-  return cached || networkPromise || fetch(request);
-}
-
 self.addEventListener("fetch", event => {
   const { request } = event;
   if (!isCacheableRequest(request)) return;
@@ -154,6 +149,11 @@ self.addEventListener("fetch", event => {
   const url = new URL(request.url);
 
   if (request.mode === "navigate") {
+    event.respondWith(networkFirst(request));
+    return;
+  }
+
+  if (isShellAsset(url)) {
     event.respondWith(networkFirst(request));
     return;
   }
@@ -169,10 +169,7 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  if (isSameOrigin(url)) {
-    if (url.pathname.endsWith(".js") || url.pathname.endsWith(".webmanifest") || url.pathname.endsWith(".png")) {
-      event.respondWith(staleWhileRevalidate(request));
-      return;
-    }
+  if (isSameOrigin(url) && url.pathname.endsWith(".png")) {
+    event.respondWith(cacheFirst(request));
   }
 });

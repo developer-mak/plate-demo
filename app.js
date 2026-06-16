@@ -1,5 +1,5 @@
 // Update whenever code changes (shown in UI below header).
-const LAST_UPDATE_NOTE = "Model parallel loading.";
+const LAST_UPDATE_NOTE = "PWA auto-updates in installed app.";
 const LAST_UPDATE_TIME = "Jun 11, 2026";
 
 const imageInput = document.getElementById("imageInput");
