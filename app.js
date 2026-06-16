@@ -1,5 +1,5 @@
 // Update whenever code changes (shown in UI below header).
-const LAST_UPDATE_NOTE = "PWA auto-updates in installed app.";
+const LAST_UPDATE_NOTE = "Fast plate OCR.";
 const LAST_UPDATE_TIME = "Jun 11, 2026";
 
 const imageInput = document.getElementById("imageInput");
@@ -337,12 +337,19 @@ async function processImage(img) {
     inputCtx.drawImage(img, 0, 0, inputSize, inputSize);
 
     const imageData = inputCtx.getImageData(0, 0, inputSize, inputSize);
-    const input = new Float32Array(1 * 3 * inputSize * inputSize);
+    // const input = new Float32Array(1 * 3 * inputSize * inputSize);
 
-    for (let i = 0; i < inputSize * inputSize; i++) {
-        input[i] = imageData.data[i * 4] / 255;
-        input[i + inputSize * inputSize] = imageData.data[i * 4 + 1] / 255;
-        input[i + 2 * inputSize * inputSize] = imageData.data[i * 4 + 2] / 255;
+    // Faster version — pre-divide using Float32Array math:
+    const pixels = imageData.data;        // Uint8ClampedArray
+    const total  = inputSize * inputSize;
+    const input  = new Float32Array(3 * total);
+    const inv255 = 1 / 255;              // multiply is faster than divide in loops
+
+    for (let i = 0; i < total; i++) {
+        const p = i * 4;
+        input[i]           = pixels[p]     * inv255;  // R
+        input[i + total]   = pixels[p + 1] * inv255;  // G
+        input[i + total*2] = pixels[p + 2] * inv255;  // B
     }
 
     const tensor = new ort.Tensor("float32", input, [1, 3, inputSize, inputSize]);
