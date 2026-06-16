@@ -1,5 +1,6 @@
-// Update this one-liner whenever code changes (shown in UI below header).
-const LAST_UPDATE_NOTE = "Adaptive outline & aligned stepper.";
+// Update whenever code changes (shown in UI below header).
+const LAST_UPDATE_NOTE = "PWA offline install & caching.";
+const LAST_UPDATE_TIME = "Jun 11, 2026";
 
 const imageInput = document.getElementById("imageInput");
 const captureBtn = document.getElementById("captureBtn");
@@ -24,6 +25,7 @@ const errorHint = document.getElementById("errorHint");
 const resultContent = document.getElementById("resultContent");
 const toastBanner = document.getElementById("toastBanner");
 const lastUpdateText = document.getElementById("lastUpdateText");
+const lastUpdateTime = document.getElementById("lastUpdateTime");
 
 const STORAGE_KEY = "plate_demo_records";
 const STEPPER_STEPS = ["upload", "detect", "ocr", "done"];
@@ -44,6 +46,7 @@ let stepperResetTimer = null;
 
 window.onload = function () {
     lastUpdateText.textContent = LAST_UPDATE_NOTE;
+    if (lastUpdateTime) lastUpdateTime.textContent = LAST_UPDATE_TIME;
     loadModels();
     renderRecords();
     setIdleResultState();
@@ -53,6 +56,10 @@ async function loadModels() {
     previewSection.classList.add("is-loading-models");
     loading_icon.setAttribute("class", "bi bi-cloud-download pulse");
     loading.innerText = "Loading AI models...";
+
+    if (typeof ort !== "undefined" && ort.env?.wasm) {
+        ort.env.wasm.wasmPaths = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/";
+    }
 
     detectorModel = await ort.InferenceSession.create("./models/best.onnx");
     ocrModel = await ort.InferenceSession.create("./models/cct_s_v2_global.onnx");
