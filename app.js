@@ -1,6 +1,6 @@
 // Update whenever code changes (shown in UI below header).
-const LAST_UPDATE_NOTE = "NanoDet-Plus-M model.";
-const LAST_UPDATE_TIME = "Jun 17, 2026";
+const LAST_UPDATE_NOTE = "Model parallel loading.";
+const LAST_UPDATE_TIME = "Jun 11, 2026";
 
 const imageInput = document.getElementById("imageInput");
 const captureBtn = document.getElementById("captureBtn");
@@ -62,8 +62,13 @@ async function loadModels() {
     }
 
     // detectorModel = await ort.InferenceSession.create("./models/best.onnx");
-    detectorModel = await ort.InferenceSession.create("./models/nanodet-plus-m_320.onnx");
-    ocrModel = await ort.InferenceSession.create("./models/cct_s_v2_global.onnx");
+    // ocrModel = await ort.InferenceSession.create("./models/cct_s_v2_global.onnx");
+
+    // After (parallel — ~2x faster load)
+    [detectorModel, ocrModel] = await Promise.all([
+        ort.InferenceSession.create("./models/best.onnx",   { executionProviders: ["webgl", "wasm"] }),
+        ort.InferenceSession.create("./models/cct_s_v2_global.onnx", { executionProviders: ["webgl", "wasm"] })
+    ]);
 
     previewSection.classList.remove("is-loading-models");
     loading_icon.setAttribute("class", "bi bi-record-circle pulse");
@@ -322,8 +327,7 @@ function drawPlateHighlight(ctx, x, y, w, h, imgWidth) {
 }
 
 async function processImage(img) {
-    // const inputSize = 640;
-    const inputSize = 320;
+    const inputSize = 640;
 
     const inputCanvas = document.createElement("canvas");
     inputCanvas.width = inputSize;
@@ -348,8 +352,7 @@ async function processImage(img) {
     });
 
     const output = outputs[detectorModel.outputNames[0]];
-    // const detections = parseYoloV8Output(output.data, output.dims);
-    const detections = parseNanoDetOutput(output.data, output.dims, inputSize);
+    const detections = parseYoloV8Output(output.data, output.dims);
 
     if (detections.length === 0) {
         return { success: false, error: "no_plate" };
@@ -388,76 +391,7 @@ async function processImage(img) {
         capturedImage: canvas.toDataURL("image/jpeg", 0.8)
     };
 }
-function parseNanoDetOutput(data, dims, inputSize = 320) {
-    const detections = [];
-    const numClasses = 80; // COCO classes — plate is class 2 (car) or use score threshold
-    const regMax = 7;      // nanodet-plus default
-    const strides = [8, 16, 32, 64];
-  
-    let offset = 0;
-  
-    for (const stride of strides) {
-      const gridH = Math.ceil(inputSize / stride);
-      const gridW = Math.ceil(inputSize / stride);
-  
-      for (let y = 0; y < gridH; y++) {
-        for (let x = 0; x < gridW; x++) {
-          // Class scores
-          let maxScore = 0;
-          let maxClass = 0;
-  
-          for (let c = 0; c < numClasses; c++) {
-            const score = data[offset + c];
-            if (score > maxScore) {
-              maxScore = score;
-              maxClass = c;
-            }
-          }
-  
-          // Box regression (DFL)
-          const boxOffset = offset + numClasses;
-          const lt_x = dfl(data, boxOffset,            regMax) * stride;
-          const lt_y = dfl(data, boxOffset + regMax,     regMax) * stride;
-          const rb_x = dfl(data, boxOffset + regMax * 2, regMax) * stride;
-          const rb_y = dfl(data, boxOffset + regMax * 3, regMax) * stride;
-  
-          const cx = (x + 0.5) * stride;
-          const cy = (y + 0.5) * stride;
-  
-          const bx = cx - lt_x;
-          const by = cy - lt_y;
-          const bw = lt_x + rb_x;
-          const bh = lt_y + rb_y;
-  
-          if (maxScore > 0.3) {
-            detections.push({
-              x: bx,
-              y: by,
-              w: bw,
-              h: bh,
-              confidence: maxScore,
-              classId: maxClass
-            });
-          }
-  
-          offset += numClasses + regMax * 4;
-        }
-      }
-    }
-  
-    detections.sort((a, b) => b.confidence - a.confidence);
-    return detections;
-  }
-  
-  function dfl(data, startOffset, regMax) {
-    let sum = 0, weightSum = 0;
-    for (let i = 0; i < regMax; i++) {
-      const w = Math.exp(data[startOffset + i]);
-      sum += w * i;
-      weightSum += w;
-    }
-    return sum / weightSum;
-  }
+
 function parseYoloV8Output(data, dims) {
     const detections = [];
 
