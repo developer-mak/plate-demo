@@ -1,5 +1,5 @@
 // Update this one-liner whenever code changes (shown in UI below header).
-const LAST_UPDATE_NOTE = "Disable OCR model.";
+const LAST_UPDATE_NOTE = "Adaptive outline & aligned stepper.";
 
 const imageInput = document.getElementById("imageInput");
 const captureBtn = document.getElementById("captureBtn");
@@ -55,7 +55,7 @@ async function loadModels() {
     loading.innerText = "Loading AI models...";
 
     detectorModel = await ort.InferenceSession.create("./models/best.onnx");
-    // ocrModel = await ort.InferenceSession.create("./models/cct_s_v2_global.onnx");
+    ocrModel = await ort.InferenceSession.create("./models/cct_s_v2_global.onnx");
 
     previewSection.classList.remove("is-loading-models");
     loading_icon.setAttribute("class", "bi bi-record-circle pulse");
