@@ -1,6 +1,6 @@
 // Update whenever code changes (shown in UI below header).
-const LAST_UPDATE_NOTE = "PWA offline install & caching.";
-const LAST_UPDATE_TIME = "Jun 11, 2026";
+const LAST_UPDATE_NOTE = "NanoDet-Plus-M model.";
+const LAST_UPDATE_TIME = "Jun 17, 2026";
 
 const imageInput = document.getElementById("imageInput");
 const captureBtn = document.getElementById("captureBtn");
