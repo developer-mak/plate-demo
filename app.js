@@ -1,5 +1,5 @@
 // Update this one-liner whenever code changes (shown in UI below header).
-const LAST_UPDATE_NOTE = "Adaptive outline & aligned stepper.";
+const LAST_UPDATE_NOTE = "Disable detector model.";
 
 const imageInput = document.getElementById("imageInput");
 const captureBtn = document.getElementById("captureBtn");
@@ -54,7 +54,7 @@ async function loadModels() {
     loading_icon.setAttribute("class", "bi bi-cloud-download pulse");
     loading.innerText = "Loading AI models...";
 
-    detectorModel = await ort.InferenceSession.create("./models/best.onnx");
+    // detectorModel = await ort.InferenceSession.create("./models/best.onnx");
     ocrModel = await ort.InferenceSession.create("./models/cct_s_v2_global.onnx");
 
     previewSection.classList.remove("is-loading-models");
