@@ -1,5 +1,5 @@
 // Update whenever code changes (shown in UI below header).
-const LAST_UPDATE_NOTE = "Reducd input size to 256";
+const LAST_UPDATE_NOTE = "Bypassed to make it faster";
 const LAST_UPDATE_TIME = "Jun 11, 2026";
 
 const imageInput = document.getElementById("imageInput");
@@ -65,11 +65,16 @@ async function loadModels() {
     // ocrModel = await ort.InferenceSession.create("./models/cct_s_v2_global.onnx");
 
     // After (parallel — ~2x faster load)
-    [detectorModel, ocrModel] = await Promise.all([
-        ort.InferenceSession.create("./models/best.onnx",   { executionProviders: ["webgl", "wasm"] }),
-        ort.InferenceSession.create("./models/cct_s_v2_global.onnx", { executionProviders: ["webgl", "wasm"] })
-    ]);
+    const sessionOptions = {
+        executionProviders: ["webgpu", "webgl", "wasm"],
+        graphOptimizationLevel: "all"
+    };
 
+    [detectorModel, ocrModel] = await Promise.all([
+        ort.InferenceSession.create("./models/best.onnx", sessionOptions),
+        ort.InferenceSession.create("./models/cct_s_v2_global.onnx", sessionOptions)
+    ]);
+   
     previewSection.classList.remove("is-loading-models");
     loading_icon.setAttribute("class", "bi bi-record-circle pulse");
     loading.innerText = "Ready";
@@ -327,7 +332,7 @@ function drawPlateHighlight(ctx, x, y, w, h, imgWidth) {
 }
 
 async function processImage(img) {
-    const inputSize = 256;
+    const inputSize = 640;
 
     const inputCanvas = document.createElement("canvas");
     inputCanvas.width = inputSize;
