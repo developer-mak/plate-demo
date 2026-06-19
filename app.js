@@ -1,5 +1,5 @@
 // Update whenever code changes (shown in UI below header).
-const LAST_UPDATE_NOTE = "Bypassed to make it faster";
+const LAST_UPDATE_NOTE = "Change detection model";
 const LAST_UPDATE_TIME = "Jun 11, 2026";
 
 const imageInput = document.getElementById("imageInput");
