@@ -1,5 +1,5 @@
 // Update whenever code changes (shown in UI below header).
-const LAST_UPDATE_NOTE = "Change detection model";
+const LAST_UPDATE_NOTE = "Change detection model to yolov5n";
 const LAST_UPDATE_TIME = "Jun 11, 2026";
 
 const imageInput = document.getElementById("imageInput");
@@ -71,7 +71,7 @@ async function loadModels() {
     };
 
     [detectorModel, ocrModel] = await Promise.all([
-        ort.InferenceSession.create("./models/best.onnx", sessionOptions),
+        ort.InferenceSession.create("./models/yolov5n.onnx", sessionOptions),
         ort.InferenceSession.create("./models/cct_s_v2_global.onnx", sessionOptions)
     ]);
    
