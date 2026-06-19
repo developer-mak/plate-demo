@@ -1,5 +1,5 @@
 // Update whenever code changes (shown in UI below header).
-const LAST_UPDATE_NOTE = "Change detection model to yolov5n.2";
+const LAST_UPDATE_NOTE = "Fast Models Loading";
 const LAST_UPDATE_TIME = "Jun 11, 2026";
 
 const imageInput = document.getElementById("imageInput");
@@ -71,7 +71,7 @@ async function loadModels() {
     };
 
     [detectorModel, ocrModel] = await Promise.all([
-        ort.InferenceSession.create("./models/yolov5n.onnx", sessionOptions),
+        ort.InferenceSession.create("./models/best.onnx", sessionOptions),
         ort.InferenceSession.create("./models/cct_s_v2_global.onnx", sessionOptions)
     ]);
    
@@ -342,34 +342,28 @@ async function processImage(img) {
     inputCtx.drawImage(img, 0, 0, inputSize, inputSize);
 
     const imageData = inputCtx.getImageData(0, 0, inputSize, inputSize);
+    // const input = new Float32Array(1 * 3 * inputSize * inputSize);
 
-    const pixels = imageData.data;
-    const total = inputSize * inputSize;
-    const input = new Uint16Array(3 * total);
-    const inv255 = 1 / 255;
+    // Faster version — pre-divide using Float32Array math:
+    const pixels = imageData.data;        // Uint8ClampedArray
+    const total  = inputSize * inputSize;
+    const input  = new Float32Array(3 * total);
+    const inv255 = 1 / 255;              // multiply is faster than divide in loops
 
     for (let i = 0; i < total; i++) {
         const p = i * 4;
-
-        input[i] = float32ToFloat16(pixels[p] * inv255);
-        input[i + total] = float32ToFloat16(pixels[p + 1] * inv255);
-        input[i + total * 2] = float32ToFloat16(pixels[p + 2] * inv255);
+        input[i]           = pixels[p]     * inv255;  // R
+        input[i + total]   = pixels[p + 1] * inv255;  // G
+        input[i + total*2] = pixels[p + 2] * inv255;  // B
     }
 
-    const tensor = new ort.Tensor("float16", input, [1, 3, inputSize, inputSize]);
-
-    const detectStart = performance.now();
+    const tensor = new ort.Tensor("float32", input, [1, 3, inputSize, inputSize]);
 
     const outputs = await detectorModel.run({
         [detectorModel.inputNames[0]]: tensor
     });
 
-    const detectEnd = performance.now();
-    console.log("Detection took:", Math.round(detectEnd - detectStart), "ms");
-
     const output = outputs[detectorModel.outputNames[0]];
-    console.log("Output dims:", output.dims);
-
     const detections = parseYoloV8Output(output.data, output.dims);
 
     if (detections.length === 0) {
@@ -399,12 +393,7 @@ async function processImage(img) {
     drawPlateHighlight(ctx, x, y, w, h, img.width);
 
     setProcessingStep("ocr");
-
-    const ocrStart = performance.now();
     const plate = await recognizePlateWithFastPlateOCR(plateCanvas);
-    const ocrEnd = performance.now();
-
-    console.log("OCR took:", Math.round(ocrEnd - ocrStart), "ms");
 
     return {
         success: true,
@@ -413,35 +402,6 @@ async function processImage(img) {
         croppedImage: croppedBase64,
         capturedImage: canvas.toDataURL("image/jpeg", 0.8)
     };
-}
-function float32ToFloat16(val) {
-    const floatView = new Float32Array(1);
-    const int32View = new Int32Array(floatView.buffer);
-
-    floatView[0] = val;
-    const x = int32View[0];
-
-    let bits = (x >> 16) & 0x8000;
-    let m = (x >> 12) & 0x07ff;
-    const e = (x >> 23) & 0xff;
-
-    if (e < 103) return bits;
-
-    if (e > 142) {
-        bits |= 0x7c00;
-        return bits;
-    }
-
-    if (e < 113) {
-        m |= 0x0800;
-        bits |= (m >> (114 - e)) + ((m >> (113 - e)) & 1);
-        return bits;
-    }
-
-    bits |= ((e - 112) << 10) | (m >> 1);
-    bits += m & 1;
-
-    return bits;
 }
 
 // // Bypassed to make it faster
