@@ -1,5 +1,5 @@
 // Update whenever code changes (shown in UI below header).
-const LAST_UPDATE_NOTE = "Fast plate OCR.";
+const LAST_UPDATE_NOTE = "Bypassed to make it faster";
 const LAST_UPDATE_TIME = "Jun 11, 2026";
 
 const imageInput = document.getElementById("imageInput");
@@ -326,76 +326,104 @@ function drawPlateHighlight(ctx, x, y, w, h, imgWidth) {
     return { lineWidth, strokeColor, luminance };
 }
 
+// async function processImage(img) {
+//     const inputSize = 640;
+
+//     const inputCanvas = document.createElement("canvas");
+//     inputCanvas.width = inputSize;
+//     inputCanvas.height = inputSize;
+
+//     const inputCtx = inputCanvas.getContext("2d");
+//     inputCtx.drawImage(img, 0, 0, inputSize, inputSize);
+
+//     const imageData = inputCtx.getImageData(0, 0, inputSize, inputSize);
+//     // const input = new Float32Array(1 * 3 * inputSize * inputSize);
+
+//     // Faster version — pre-divide using Float32Array math:
+//     const pixels = imageData.data;        // Uint8ClampedArray
+//     const total  = inputSize * inputSize;
+//     const input  = new Float32Array(3 * total);
+//     const inv255 = 1 / 255;              // multiply is faster than divide in loops
+
+//     for (let i = 0; i < total; i++) {
+//         const p = i * 4;
+//         input[i]           = pixels[p]     * inv255;  // R
+//         input[i + total]   = pixels[p + 1] * inv255;  // G
+//         input[i + total*2] = pixels[p + 2] * inv255;  // B
+//     }
+
+//     const tensor = new ort.Tensor("float32", input, [1, 3, inputSize, inputSize]);
+
+//     const outputs = await detectorModel.run({
+//         [detectorModel.inputNames[0]]: tensor
+//     });
+
+//     const output = outputs[detectorModel.outputNames[0]];
+//     const detections = parseYoloV8Output(output.data, output.dims);
+
+//     if (detections.length === 0) {
+//         return { success: false, error: "no_plate" };
+//     }
+
+//     const best = detections[0];
+
+//     const scaleX = img.width / inputSize;
+//     const scaleY = img.height / inputSize;
+
+//     let x = Math.max(0, best.x * scaleX);
+//     let y = Math.max(0, best.y * scaleY);
+//     let w = Math.min(best.w * scaleX, img.width - x);
+//     let h = Math.min(best.h * scaleY, img.height - y);
+
+//     const plateCanvas = document.createElement("canvas");
+//     plateCanvas.width = Math.round(w);
+//     plateCanvas.height = Math.round(h);
+
+//     const plateCtx = plateCanvas.getContext("2d");
+//     plateCtx.drawImage(img, x, y, w, h, 0, 0, plateCanvas.width, plateCanvas.height);
+
+//     const croppedBase64 = plateCanvas.toDataURL("image/jpeg", 0.9);
+//     croppedPlateImg.src = croppedBase64;
+
+//     drawPlateHighlight(ctx, x, y, w, h, img.width);
+
+//     setProcessingStep("ocr");
+//     const plate = await recognizePlateWithFastPlateOCR(plateCanvas);
+
+//     return {
+//         success: true,
+//         plate,
+//         confidence: best.confidence,
+//         croppedImage: croppedBase64,
+//         capturedImage: canvas.toDataURL("image/jpeg", 0.8)
+//     };
+// }
 async function processImage(img) {
-    const inputSize = 640;
-
-    const inputCanvas = document.createElement("canvas");
-    inputCanvas.width = inputSize;
-    inputCanvas.height = inputSize;
-
-    const inputCtx = inputCanvas.getContext("2d");
-    inputCtx.drawImage(img, 0, 0, inputSize, inputSize);
-
-    const imageData = inputCtx.getImageData(0, 0, inputSize, inputSize);
-    // const input = new Float32Array(1 * 3 * inputSize * inputSize);
-
-    // Faster version — pre-divide using Float32Array math:
-    const pixels = imageData.data;        // Uint8ClampedArray
-    const total  = inputSize * inputSize;
-    const input  = new Float32Array(3 * total);
-    const inv255 = 1 / 255;              // multiply is faster than divide in loops
-
-    for (let i = 0; i < total; i++) {
-        const p = i * 4;
-        input[i]           = pixels[p]     * inv255;  // R
-        input[i + total]   = pixels[p + 1] * inv255;  // G
-        input[i + total*2] = pixels[p + 2] * inv255;  // B
-    }
-
-    const tensor = new ort.Tensor("float32", input, [1, 3, inputSize, inputSize]);
-
-    const outputs = await detectorModel.run({
-        [detectorModel.inputNames[0]]: tensor
-    });
-
-    const output = outputs[detectorModel.outputNames[0]];
-    const detections = parseYoloV8Output(output.data, output.dims);
-
-    if (detections.length === 0) {
-        return { success: false, error: "no_plate" };
-    }
-
-    const best = detections[0];
-
-    const scaleX = img.width / inputSize;
-    const scaleY = img.height / inputSize;
-
-    let x = Math.max(0, best.x * scaleX);
-    let y = Math.max(0, best.y * scaleY);
-    let w = Math.min(best.w * scaleX, img.width - x);
-    let h = Math.min(best.h * scaleY, img.height - y);
+    setProcessingStep("ocr");
 
     const plateCanvas = document.createElement("canvas");
-    plateCanvas.width = Math.round(w);
-    plateCanvas.height = Math.round(h);
+    plateCanvas.width = img.width;
+    plateCanvas.height = img.height;
 
     const plateCtx = plateCanvas.getContext("2d");
-    plateCtx.drawImage(img, x, y, w, h, 0, 0, plateCanvas.width, plateCanvas.height);
+    plateCtx.drawImage(img, 0, 0);
+
+    const start = performance.now();
+
+    const plate = await recognizePlateWithFastPlateOCR(plateCanvas);
+
+    const end = performance.now();
+    const ocrTimeMs = Math.round(end - start);
 
     const croppedBase64 = plateCanvas.toDataURL("image/jpeg", 0.9);
     croppedPlateImg.src = croppedBase64;
 
-    drawPlateHighlight(ctx, x, y, w, h, img.width);
-
-    setProcessingStep("ocr");
-    const plate = await recognizePlateWithFastPlateOCR(plateCanvas);
-
     return {
         success: true,
         plate,
-        confidence: best.confidence,
+        ocrTimeMs,
         croppedImage: croppedBase64,
-        capturedImage: canvas.toDataURL("image/jpeg", 0.8)
+        capturedImage: croppedBase64
     };
 }
 
