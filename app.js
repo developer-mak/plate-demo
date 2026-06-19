@@ -1,5 +1,5 @@
 // Update whenever code changes (shown in UI below header).
-const LAST_UPDATE_NOTE = "Change detection model to yolov5n";
+const LAST_UPDATE_NOTE = "Change detection model to yolov5n.";
 const LAST_UPDATE_TIME = "Jun 11, 2026";
 
 const imageInput = document.getElementById("imageInput");
@@ -364,6 +364,7 @@ async function processImage(img) {
     });
 
     const output = outputs[detectorModel.outputNames[0]];
+    console.log(output.dims);
     const detections = parseYoloV8Output(output.data, output.dims);
 
     if (detections.length === 0) {
